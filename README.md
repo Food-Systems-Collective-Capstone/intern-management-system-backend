@@ -38,7 +38,8 @@
 
 | VARIABLE | SECRET | VALUE | Description |
 | -------- | -------- | -------------- | ----------- |
-| DATABASE_URL  | Yes | postgresql://postgres.[PROJECT-REF]:[PASSWORD]@aws-0-[REGION][.pooler.supabase.com:5432/postgres](https://.pooler.supabase.com:5432/postgres) | Connection string using Supabase session pooler for persistent NextJs backend connections |
+| DATABASE_URL  | Yes | postgresql://postgres.[PROJECT-REF]:[PASSWORD]@aws-0-[REGION][.pooler.supabase.com:5432/postgres](https://.pooler.supabase.com:5432/postgres) | Connection string using Supabase session pooler for persistent NestJs backend connections |
+| Render URL | No | https://intern-management-system-backend-1.onrender.com/ | Live URL for deployed NestJs backend on Render | 
 
 
 
