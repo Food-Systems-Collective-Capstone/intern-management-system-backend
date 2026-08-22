@@ -2,7 +2,7 @@
 
 | Technology | Usage | Version |
 | -------- | -------- | -------------- |
-| NodeJS  | Runtime environment | 26 |
+| NodeJS  | Runtime environment | 24 |
 | pnpm  | JS/NodeJS Package manager | 11.22.0 |
 | NestJs | Backend framework  | 19 |
 | PostgreSQL | Shared database  | 17.6 |
@@ -21,7 +21,7 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.Ensure you have NodeJS/26 and pnpm/11.22.0 (or version listed in package.json)
+[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.Ensure you have NodeJS/24 and pnpm/11.22.0 (or version listed in package.json)
 
 Also create a /.env file in the root directory and fill in necessary variables, found in /.env.example
 
