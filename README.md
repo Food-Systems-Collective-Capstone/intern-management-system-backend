@@ -1,3 +1,4 @@
+
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
@@ -20,6 +21,26 @@
 </p>
   <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+
+## SPECIFICATIONS
+
+| Technology | Usage | Version |
+| -------- | -------- | -------------- |
+| NodeJS  | Runtime environment | 26 |
+| pnpm  | JS/NodeJS Package manager | 11.22.0 |
+| NestJs | Backend framework  | 19 |
+| PostgreSQL | Shared database  | 17.6 |
+| Render | Backend cloud deployment  | N/A |
+| Supabase  | Database hosting | N/A |
+
+
+## ENVIRONMENT VARIABLES
+
+| VARIABLE | SECRET | VALUE | Description |
+| -------- | -------- | -------------- | ----------- |
+| DATABASE_URL  | Yes | postgresql://postgres.[PROJECT-REF]:[PASSWORD]@aws-0-[REGION][.pooler.supabase.com:5432/postgres](https://.pooler.supabase.com:5432/postgres) | Connection string using Supabase session pooler for persistent NextJs backend connections |
+
+
 
 ## Description
 
