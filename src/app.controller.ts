@@ -1,18 +1,10 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
-import { DataSource } from 'typeorm';
-
-interface Columns {
-  column_name: string;
-  data_type: string;
-  is_nullable: string;
-}
 
 @Controller()
 export class AppController {
   constructor(
     private readonly appService: AppService,
-    private readonly dataSource: DataSource,
   ) {}
 
   @Get()
@@ -20,11 +12,4 @@ export class AppController {
     return this.appService.getHello();
   }
 
-  @Get('health/db')
-  async testDb(): Promise<{ result: Columns[] }> {
-    const result = await this.dataSource.query<Columns[]>(
-      "SELECT column_name, data_type, is_nullable FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'person_profile';",
-    );
-    return { result };
-  }
 }
