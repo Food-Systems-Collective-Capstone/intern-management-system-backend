@@ -15,6 +15,8 @@
 | VARIABLE | SECRET | VALUE | Description |
 | -------- | -------- | -------------- | ----------- |
 | DATABASE_URL  | Yes | postgresql://postgres.[PROJECT-REF]:[PASSWORD]@aws-0-[REGION][.pooler.supabase.com:5432/postgres](https://.pooler.supabase.com:5432/postgres) | Connection string using Supabase session pooler for persistent NestJs backend connections |
+| SUPABASE_URL | Yes | https://[project_id].supabase.co | URL of Supabase project, used to initialise Supabase client for Storage and authentication features|
+| SUPABASE_KEY | Yes | API SECRET KEY | Supabase secret API key which grants admin access, ONLY USED FOR BACKEND | 
 | Render URL | No | https://intern-management-system-backend-1.onrender.com/ | Live URL for deployed NestJs backend on Render | 
 
 
