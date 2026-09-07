@@ -5,7 +5,6 @@ import { DataSource } from 'typeorm';
 
 describe('AppController', () => {
   let appController: AppController;
-  let dataSource: DataSource;
 
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
