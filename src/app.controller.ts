@@ -22,7 +22,7 @@ export class AppController {
     ); //This get uptime of database by sending that query
     try {
       write_test = await this.dataSource.query(
-        "INSERT INTO shared_accounts (email, role, auth_id) VALUES ('testconnection@example.com', 'Admin', '826880c1-db9f-4258-ac6d-486cd2a98a8c')",
+        "INSERT INTO shared_accounts (email, role, auth_id) VALUES ('testconnection@example.com', 'User', '826880c1-db9f-4258-ac6d-486cd2a98a8c')",
       ); //This tests write permissions by inserting a record into table
     } catch {
       write_test = 'RECORD ALREADY ADDED NOTHING TO ADD';
