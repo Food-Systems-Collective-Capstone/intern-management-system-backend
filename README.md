@@ -27,6 +27,40 @@
 
 Also create a /.env file in the root directory and fill in necessary variables, found in /.env.example
 
+## API Reference
+
+**Base URL** https://intern-management-system-backend-1.onrender.com/
+
+### GET api/health
+
+**API Health URL** https://intern-management-system-backend-1.onrender.com/api/health
+
+Used to verify database connection status, current up time and write/read permissions on database
+
+**Example Response**
+
+```bash
+{
+  "connectionStatus": true,
+  "currentUpTime": [
+    {
+      "pg_postmaster_start_time": "2026-09-07T06:16:32.687Z"
+    }
+  ],
+  "write_test": "RECORD ALREADY ADDED NOTHING TO ADD",
+  "get_data": [
+    {
+      "id": "cd8ac10e-1480-4237-97aa-71120bdcdbd4",
+      "email": "testconnection@example.com",
+      "role": "User",
+      "auth_id": "826880c1-db9f-4258-ac6d-486cd2a98a8c",
+      "created_at": "2026-09-07T00:00:00.000Z",
+      "updated_at": "2026-09-07T00:00:00.000Z"
+    }
+  ]
+}
+```
+
 ## Project setup
 
 ```bash
