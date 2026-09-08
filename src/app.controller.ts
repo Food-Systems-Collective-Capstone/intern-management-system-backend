@@ -32,6 +32,14 @@ export class AppController {
       "SELECT *  FROM shared_accounts WHERE email = 'testconnection@example.com'",
     );
 
-    return { currentUpTime, write_test, get_data };
+    let connectionStatus: boolean = true;
+
+    try {
+      await this.dataSource.query('SELECT 1');
+    } catch {
+      connectionStatus = false;
+    }
+
+    return { connectionStatus, currentUpTime, write_test, get_data };
   }
 }
