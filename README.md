@@ -46,6 +46,18 @@ $ pnpm run start:dev
 $ pnpm run start:prod
 ```
 
+## Build
+
+```bash
+$ pnpm build
+```
+
+### Lint
+
+```bash
+$ pnpm lint
+```
+
 ## Run tests
 
 ```bash
