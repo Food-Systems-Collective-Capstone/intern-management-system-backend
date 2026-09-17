@@ -12,4 +12,8 @@ export class SupabaseStorageBucketService {
             process.env.SUPABASE_KEY!,
         )
     };
+
+    async uploadResume (){
+        
+    }
 }
