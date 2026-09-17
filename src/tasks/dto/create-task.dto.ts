@@ -1,5 +1,6 @@
 import {
   IsDateString,
+  IsIn,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -20,8 +21,8 @@ export class CreateTaskDto {
   due_date?: string;
 
   @IsString()
-  @IsNotEmpty()
-  priority: string;
+  @IsIn(['Low', 'Medium', 'High'])
+  priority: string; 
 
   @IsUUID()
   @IsNotEmpty()
