@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ApplicationsController } from './applications.controller';
 import { ApplicationsService } from './applications.service';
+import { SupabaseStorageBucketService } from '../supabase-storage-bucket/supabase-storage-bucket.service';
 
 describe('ApplicationsController', () => {
   let controller: ApplicationsController;
@@ -11,8 +12,12 @@ describe('ApplicationsController', () => {
       providers: [
         {
           provide: ApplicationsService,
-          useValue: { CreateApplicationDto: jest.fn() },
+          useValue: { createApplication: jest.fn() },
         },
+        {
+          provide: SupabaseStorageBucketService,
+          useValue: {uploadResume: jest.fn()},
+        }
       ],
     }).compile();
 
