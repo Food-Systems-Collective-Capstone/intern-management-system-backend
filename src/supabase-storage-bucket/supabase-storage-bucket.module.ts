@@ -3,6 +3,6 @@ import { SupabaseStorageBucketService } from './supabase-storage-bucket.service'
 
 @Module({
   providers: [SupabaseStorageBucketService],
-  exports: [SupabaseStorageBucketService]
+  exports: [SupabaseStorageBucketService],
 })
 export class SupabaseStorageBucketModule {}

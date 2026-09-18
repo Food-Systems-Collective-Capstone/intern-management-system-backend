@@ -31,4 +31,20 @@ export class ApplicationsService {
 
     return result;
   }
+
+  async saveResumeURL(
+    filePath: string,
+    personId: string,
+  ): Promise<PersonProfile> {
+    const result = await this.dataSource.query<PersonProfile[]>(
+      'UPDATE person_profile SET resume_url = $1 WHERE person_id = $2 RETURNING *',
+      [filePath, personId],
+    );
+
+    if (result.length === 0) {
+      throw new Error(`No person found with id ${personId}`);
+    }
+
+    return result[0];
+  }
 }

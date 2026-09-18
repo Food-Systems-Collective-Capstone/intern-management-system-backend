@@ -9,7 +9,9 @@ describe('SupabaseStorageBucketService', () => {
       providers: [SupabaseStorageBucketService],
     }).compile();
 
-    service = module.get<SupabaseStorageBucketService>(SupabaseStorageBucketService);
+    service = module.get<SupabaseStorageBucketService>(
+      SupabaseStorageBucketService,
+    );
   });
 
   it('should be defined', () => {
