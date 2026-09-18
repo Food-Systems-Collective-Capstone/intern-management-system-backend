@@ -7,11 +7,13 @@ describe('ApplicationsService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [ApplicationsService, 
-      {
-        provide: DataSource,
-        useValue: {query: jest.fn(),}
-      }],
+      providers: [
+        ApplicationsService,
+        {
+          provide: DataSource,
+          useValue: { query: jest.fn() },
+        },
+      ],
     }).compile();
 
     service = module.get<ApplicationsService>(ApplicationsService);
