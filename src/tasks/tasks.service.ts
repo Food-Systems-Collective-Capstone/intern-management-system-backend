@@ -172,7 +172,7 @@ export class TasksService {
       );
     }
 
-    const updatedTasks = await this.dataSource.query<Task[]>(
+    const updateResult = await this.dataSource.query<[Task[], number]>(
       `UPDATE tasks
        SET status = 'In Progress',
            updated_at = NOW()
@@ -181,6 +181,8 @@ export class TasksService {
        RETURNING *`,
       [taskId, internId],
     );
+
+    const [updatedTasks] = updateResult;
 
     return updatedTasks[0];
   }
