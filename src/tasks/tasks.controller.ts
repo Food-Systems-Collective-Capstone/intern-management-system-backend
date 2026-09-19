@@ -8,8 +8,8 @@ import {
   Post,
 } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
-import { TasksService } from './tasks.service';
 import { Task } from './interfaces/task.interface';
+import { TasksService } from './tasks.service';
 
 @Controller('tasks')
 export class TasksController {
@@ -18,6 +18,11 @@ export class TasksController {
   @Post()
   createTask(@Body() dto: CreateTaskDto): Promise<Task> {
     return this.tasksService.createTask(dto);
+  }
+
+  @Get('assignment-people')
+  getAssignmentPeople() {
+    return this.tasksService.getAssignmentPeople();
   }
 
   @Get('intern/:internId')

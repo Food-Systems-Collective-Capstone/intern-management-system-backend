@@ -1,5 +1,5 @@
 export interface PersonProfile {
-  person_id: string,
+  person_id: string;
   firstname: string;
   lastname: string;
   phone: string;
