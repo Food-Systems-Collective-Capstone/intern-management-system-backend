@@ -4,9 +4,59 @@ import { DataSource } from 'typeorm';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { Task } from './interfaces/task.interface';
 
+type AssignmentPerson = {
+  id: string;
+  email: string;
+  role: string;
+  first_name: string | null;
+  last_name: string | null;
+  name: string;
+};
+
 @Injectable()
 export class TasksService {
   constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
+
+  async getAssignmentPeople(): Promise<AssignmentPerson[]> {
+    const people = await this.dataSource.query<
+      {
+        id: string;
+        email: string;
+        role: string;
+        firstname: string | null;
+        lastname: string | null;
+      }[]
+    >(
+      `SELECT
+         sa.id,
+         sa.email,
+         sa.role,
+         pp.firstname,
+         pp.lastname
+       FROM shared_accounts sa
+       LEFT JOIN person_profile pp
+         ON pp.person_id = sa.id
+       ORDER BY pp.firstname ASC NULLS LAST,
+                pp.lastname ASC NULLS LAST,
+                sa.email ASC`,
+    );
+
+    return people.map((person) => {
+      const fullName = [person.firstname, person.lastname]
+        .filter(Boolean)
+        .join(' ')
+        .trim();
+
+      return {
+        id: person.id,
+        email: person.email,
+        role: person.role,
+        first_name: person.firstname,
+        last_name: person.lastname,
+        name: fullName || person.email,
+      };
+    });
+  }
 
   async createTask(dto: CreateTaskDto): Promise<Task> {
     const accounts = await this.dataSource.query<{ id: string }[]>(
