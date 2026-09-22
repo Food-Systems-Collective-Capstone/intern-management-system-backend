@@ -55,4 +55,20 @@ export class SupabaseStorageBucketService {
 
     return filePath;
   }
+
+  async createTaskSubmissionSignedUrl(filePath: string): Promise<string> {
+    const { data, error } = await this.client.storage
+      .from(this.taskSubmissionBucketName)
+      .createSignedUrl(filePath, 60 * 10);
+
+    if (error || !data?.signedUrl) {
+      throw new Error(
+        `Unable to create task submission attachment URL: ${
+          error?.message ?? 'Unknown storage error'
+        }`,
+      );
+    }
+
+    return data.signedUrl;
+  }
 }
