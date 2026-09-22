@@ -9,6 +9,7 @@ import {
   Param,
   Query,
   Get,
+  Patch,
 } from '@nestjs/common';
 import { ApplicationsService } from './applications.service';
 import { CreateApplicationDto } from './dto/create-application.dto';
@@ -16,6 +17,7 @@ import { PersonProfile } from './interfaces/person-profile.interface';
 import { SupabaseStorageBucketService } from '../supabase-storage-bucket/supabase-storage-bucket.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { GetApplicationQueryDto } from './dto/get-application-query.dto';
+import { UpdateStatusDto } from './dto/update-status.dto';
 
 @Controller()
 export class ApplicationsController {
@@ -54,5 +56,16 @@ export class ApplicationsController {
   @Get('api/applications')
   async getAll(@Query() query: GetApplicationQueryDto) {
     return this.applicationService.getApplications(query);
+  }
+
+  @Patch('api/applications/:id/status')
+  async updateStatus(
+    @Param('id', ParseUUIDPipe) personId: string,
+    @Body() updateStatusDto: UpdateStatusDto,
+  ): Promise<PersonProfile> {
+    return this.applicationService.updateStatus(
+      personId,
+      updateStatusDto.status,
+    );
   }
 }
