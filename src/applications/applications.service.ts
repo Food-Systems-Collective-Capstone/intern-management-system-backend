@@ -9,7 +9,17 @@ import { GetApplicationQueryDto } from './dto/get-application-query.dto';
 export class ApplicationsService {
   constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
 
-  async createApplication(dto: CreateApplicationDto, personId: string): Promise<PersonProfile> {
+  async createApplication(
+    dto: CreateApplicationDto,
+    authId: string,
+  ): Promise<PersonProfile> {
+    const accountTableResult = await this.dataSource.query<{ id: string }[]>(
+      'SELECT id FROM shared_accounts WHERE auth_id = $1',
+      [authId],
+    );
+
+    const personId = accountTableResult[0].id;
+
     const result = await this.dataSource.query<PersonProfile>(
       'INSERT INTO person_profile (person_id, firstname, lastname, phone, email, university, degree, address, city, state, post_code, graduation_year, motivation) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *',
       [

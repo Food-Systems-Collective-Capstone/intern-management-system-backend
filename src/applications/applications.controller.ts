@@ -11,7 +11,7 @@ import {
   Get,
   Patch,
   UseGuards,
-  Req
+  Req,
 } from '@nestjs/common';
 import { ApplicationsService } from './applications.service';
 import { CreateApplicationDto } from './dto/create-application.dto';
@@ -33,10 +33,13 @@ export class ApplicationsController {
   @UseGuards(AuthGuard('jwt'))
   async create(
     @Body() createApplicationDto: CreateApplicationDto,
-    @Req() req: Request & {user : {sub : string}},
+    @Req() req: Request & { user: { sub: string } },
   ): Promise<PersonProfile> {
-    const personId = req.user.sub;
-    return this.applicationService.createApplication(createApplicationDto, personId);
+    const authId = req.user.sub;
+    return this.applicationService.createApplication(
+      createApplicationDto,
+      authId,
+    );
   }
 
   @Post('api/applications/resume/:id')

@@ -29,6 +29,7 @@
     "@supabase/supabase-js": "^2.116.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
+    "jwks-rsa": "^4.1.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pg": "^8.23.0",
@@ -74,6 +75,9 @@
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },
+    "transformIgnorePatterns": [
+      "node_modules/(?!.*@nestjs/passport)"
+    ],
     "collectCoverageFrom": [
       "**/*.(t|j)s"
     ],
