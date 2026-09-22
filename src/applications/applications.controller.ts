@@ -7,12 +7,15 @@ import {
   BadRequestException,
   ParseUUIDPipe,
   Param,
+  Query,
+  Get,
 } from '@nestjs/common';
 import { ApplicationsService } from './applications.service';
 import { CreateApplicationDto } from './dto/create-application.dto';
 import { PersonProfile } from './interfaces/person-profile.interface';
 import { SupabaseStorageBucketService } from '../supabase-storage-bucket/supabase-storage-bucket.service';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { GetApplicationQueryDto } from './dto/get-application-query.dto';
 
 @Controller()
 export class ApplicationsController {
@@ -46,5 +49,10 @@ export class ApplicationsController {
       personId,
     );
     return this.applicationService.saveResumeURL(filePath, personId);
+  }
+
+  @Get('api/applications')
+  async getAll(@Query() query: GetApplicationQueryDto){
+    return this.applicationService.getApplications(query)
   }
 }
