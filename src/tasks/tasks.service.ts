@@ -6,6 +6,10 @@ import {
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { CreateTaskDto } from './dto/create-task.dto';
+import {
+  TaskSubmission,
+  TaskSubmissionResult,
+} from './interfaces/task-submission.interface';
 import { Task } from './interfaces/task.interface';
 
 type AssignmentPerson = {
@@ -185,5 +189,138 @@ export class TasksService {
     const [updatedTasks] = updateResult;
 
     return updatedTasks[0];
+  }
+
+  async validateTaskForSubmission(
+    internId: string,
+    taskId: string,
+  ): Promise<void> {
+    const tasks = await this.dataSource.query<Task[]>(
+      `SELECT *
+       FROM tasks
+       WHERE id = $1
+         AND assigned_intern_id = $2`,
+      [taskId, internId],
+    );
+
+    if (tasks.length === 0) {
+      throw new NotFoundException(
+        'Task not found or is not assigned to this Intern.',
+      );
+    }
+
+    if (tasks[0].status !== 'In Progress') {
+      throw new BadRequestException(
+        'Only tasks with In Progress status can be submitted.',
+      );
+    }
+
+    const existingSubmissions = await this.dataSource.query<{ id: string }[]>(
+      `SELECT id
+       FROM task_submissions
+       WHERE task_id = $1
+         AND submitted_by_intern_id = $2
+       LIMIT 1`,
+      [taskId, internId],
+    );
+
+    if (existingSubmissions.length > 0) {
+      throw new BadRequestException(
+        'A submission already exists for this task.',
+      );
+    }
+  }
+
+  async submitTask(
+    internId: string,
+    taskId: string,
+    description: string | null,
+    fileUrl: string | null,
+  ): Promise<TaskSubmissionResult> {
+    const queryRunner = this.dataSource.createQueryRunner();
+
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const tasks = (await queryRunner.query(
+        `SELECT *
+         FROM tasks
+         WHERE id = $1
+           AND assigned_intern_id = $2
+         FOR UPDATE`,
+        [taskId, internId],
+      )) as unknown as Task[];
+
+      if (tasks.length === 0) {
+        throw new NotFoundException(
+          'Task not found or is not assigned to this Intern.',
+        );
+      }
+
+      if (tasks[0].status !== 'In Progress') {
+        throw new BadRequestException(
+          'Only tasks with In Progress status can be submitted.',
+        );
+      }
+
+      const existingSubmissions = (await queryRunner.query(
+        `SELECT id
+         FROM task_submissions
+         WHERE task_id = $1
+           AND submitted_by_intern_id = $2
+         LIMIT 1`,
+        [taskId, internId],
+      )) as unknown as { id: string }[];
+
+      if (existingSubmissions.length > 0) {
+        throw new BadRequestException(
+          'A submission already exists for this task.',
+        );
+      }
+
+      const submissionResult = (await queryRunner.query(
+        `INSERT INTO task_submissions
+          (
+            task_id,
+            submitted_by_intern_id,
+            description,
+            file_url,
+            submitted_at,
+            updated_at
+          )
+         VALUES ($1, $2, $3, $4, NOW(), NOW())
+         RETURNING *`,
+        [taskId, internId, description, fileUrl],
+      )) as unknown as TaskSubmission[];
+
+      const taskUpdateResult = (await queryRunner.query(
+        `UPDATE tasks
+         SET status = 'Submitted',
+             updated_at = NOW()
+         WHERE id = $1
+           AND assigned_intern_id = $2
+         RETURNING *`,
+        [taskId, internId],
+      )) as unknown as [Task[], number];
+
+      const [updatedTasks] = taskUpdateResult;
+
+      await queryRunner.commitTransaction();
+
+      return {
+        submission: submissionResult[0],
+        task: {
+          id: updatedTasks[0].id,
+          status: updatedTasks[0].status,
+          updated_at: updatedTasks[0].updated_at,
+        },
+      };
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
   }
 }
