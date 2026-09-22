@@ -10,6 +10,8 @@ import {
   Query,
   Get,
   Patch,
+  UseGuards,
+  Req
 } from '@nestjs/common';
 import { ApplicationsService } from './applications.service';
 import { CreateApplicationDto } from './dto/create-application.dto';
@@ -18,6 +20,7 @@ import { SupabaseStorageBucketService } from '../supabase-storage-bucket/supabas
 import { FileInterceptor } from '@nestjs/platform-express';
 import { GetApplicationQueryDto } from './dto/get-application-query.dto';
 import { UpdateStatusDto } from './dto/update-status.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller()
 export class ApplicationsController {
@@ -27,10 +30,13 @@ export class ApplicationsController {
   ) {}
 
   @Post('api/applications')
+  @UseGuards(AuthGuard('jwt'))
   async create(
     @Body() createApplicationDto: CreateApplicationDto,
+    @Req() req: Request & {user : {sub : string}},
   ): Promise<PersonProfile> {
-    return this.applicationService.createApplication(createApplicationDto);
+    const personId = req.user.sub;
+    return this.applicationService.createApplication(createApplicationDto, personId);
   }
 
   @Post('api/applications/resume/:id')
