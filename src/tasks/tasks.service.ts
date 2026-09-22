@@ -7,6 +7,8 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { CreateTaskDto } from './dto/create-task.dto';
 import {
+  MentorSubmissionReview,
+  MentorTaskCompletionResult,
   TaskSubmission,
   TaskSubmissionResult,
 } from './interfaces/task-submission.interface';
@@ -112,6 +114,167 @@ export class TasksService {
     );
 
     return result[0];
+  }
+
+  async getMentorSubmissionReviews(
+    mentorId: string,
+  ): Promise<MentorSubmissionReview[]> {
+    const accounts = await this.dataSource.query<{ id: string }[]>(
+      `SELECT id
+       FROM shared_accounts
+       WHERE id = $1`,
+      [mentorId],
+    );
+
+    if (accounts.length === 0) {
+      throw new BadRequestException('The Mentor account does not exist.');
+    }
+
+    const reviews = await this.dataSource.query<MentorSubmissionReview[]>(
+      `SELECT
+         t.id AS task_id,
+         t.title,
+         t.description AS task_description,
+         t.due_date,
+         t.priority,
+         t.status,
+         t.assigned_intern_id,
+         t.assigned_by_mentor_id,
+         COALESCE(
+           NULLIF(
+             TRIM(
+               CONCAT_WS(
+                 ' ',
+                 pp.firstname,
+                 pp.lastname
+               )
+             ),
+             ''
+           ),
+           sa.email
+         ) AS intern_name,
+         sa.email AS intern_email,
+         submission.id AS submission_id,
+         submission.description AS submission_description,
+         submission.file_url,
+         submission.submitted_at
+       FROM tasks t
+       INNER JOIN shared_accounts sa
+         ON sa.id = t.assigned_intern_id
+       LEFT JOIN person_profile pp
+         ON pp.person_id = t.assigned_intern_id
+       LEFT JOIN LATERAL (
+         SELECT
+           ts.id,
+           ts.description,
+           ts.file_url,
+           ts.submitted_at
+         FROM task_submissions ts
+         WHERE ts.task_id = t.id
+           AND ts.submitted_by_intern_id = t.assigned_intern_id
+         ORDER BY ts.submitted_at DESC NULLS LAST,
+                  ts.created_at DESC
+         LIMIT 1
+       ) submission ON TRUE
+       WHERE t.assigned_by_mentor_id = $1
+       ORDER BY
+         CASE t.status
+           WHEN 'Submitted' THEN 0
+           WHEN 'Completed' THEN 1
+           ELSE 2
+         END,
+         submission.submitted_at DESC NULLS LAST,
+         t.created_at DESC`,
+      [mentorId],
+    );
+
+    return reviews.map((review) => ({
+      ...review,
+      file_name: review.file_url
+        ? this.getSubmissionFileName(review.file_url)
+        : null,
+      attachment_url: null,
+    }));
+  }
+
+  async completeTask(
+    mentorId: string,
+    taskId: string,
+  ): Promise<MentorTaskCompletionResult> {
+    const queryRunner = this.dataSource.createQueryRunner();
+
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const tasks = (await queryRunner.query(
+        `SELECT *
+         FROM tasks
+         WHERE id = $1
+           AND assigned_by_mentor_id = $2
+         FOR UPDATE`,
+        [taskId, mentorId],
+      )) as unknown as Task[];
+
+      if (tasks.length === 0) {
+        throw new NotFoundException(
+          'Task not found or is not assigned by this Mentor.',
+        );
+      }
+
+      const task = tasks[0];
+
+      if (task.status !== 'Submitted') {
+        throw new BadRequestException(
+          'Only tasks with Submitted status can be marked Completed.',
+        );
+      }
+
+      const submissions = (await queryRunner.query(
+        `SELECT id
+         FROM task_submissions
+         WHERE task_id = $1
+           AND submitted_by_intern_id = $2
+         ORDER BY submitted_at DESC NULLS LAST,
+                  created_at DESC
+         LIMIT 1`,
+        [taskId, task.assigned_intern_id],
+      )) as unknown as { id: string }[];
+
+      if (submissions.length === 0) {
+        throw new BadRequestException(
+          'This task does not have an Intern submission to review.',
+        );
+      }
+
+      const updateResult = (await queryRunner.query(
+        `UPDATE tasks
+         SET status = 'Completed',
+             updated_at = NOW()
+         WHERE id = $1
+           AND assigned_by_mentor_id = $2
+           AND status = 'Submitted'
+         RETURNING id, status, updated_at`,
+        [taskId, mentorId],
+      )) as unknown as [MentorTaskCompletionResult[], number];
+
+      const [updatedTasks] = updateResult;
+
+      if (updatedTasks.length === 0) {
+        throw new BadRequestException(
+          'The task could not be marked Completed.',
+        );
+      }
+
+      await queryRunner.commitTransaction();
+
+      return updatedTasks[0];
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   async getInternTasks(internId: string): Promise<Task[]> {
@@ -322,5 +485,11 @@ export class TasksService {
     } finally {
       await queryRunner.release();
     }
+  }
+
+  private getSubmissionFileName(filePath: string): string {
+    const storedName = filePath.split('/').pop() ?? filePath;
+
+    return storedName.replace(/^\d+-/, '');
   }
 }
