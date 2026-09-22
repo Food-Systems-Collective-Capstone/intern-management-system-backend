@@ -52,7 +52,7 @@ export class ApplicationsController {
   }
 
   @Get('api/applications')
-  async getAll(@Query() query: GetApplicationQueryDto){
-    return this.applicationService.getApplications(query)
+  async getAll(@Query() query: GetApplicationQueryDto) {
+    return this.applicationService.getApplications(query);
   }
 }

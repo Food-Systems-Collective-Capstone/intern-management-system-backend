@@ -22,7 +22,7 @@ export class CreateTaskDto {
 
   @IsString()
   @IsIn(['Low', 'Medium', 'High'])
-  priority: string; 
+  priority: string;
 
   @IsUUID()
   @IsNotEmpty()

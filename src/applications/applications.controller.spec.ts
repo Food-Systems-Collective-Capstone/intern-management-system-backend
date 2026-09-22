@@ -16,8 +16,8 @@ describe('ApplicationsController', () => {
         },
         {
           provide: SupabaseStorageBucketService,
-          useValue: {uploadResume: jest.fn()},
-        }
+          useValue: { uploadResume: jest.fn() },
+        },
       ],
     }).compile();
 
