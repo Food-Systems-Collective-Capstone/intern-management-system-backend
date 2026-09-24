@@ -4,7 +4,8 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 @Injectable()
 export class SupabaseStorageBucketService {
   private readonly client: SupabaseClient;
-  private readonly bucketName = 'Resume';
+  private readonly resumeBucketName = 'Resume';
+  private readonly taskSubmissionBucketName = 'Task-Submissions';
 
   constructor() {
     this.client = createClient(
@@ -20,7 +21,7 @@ export class SupabaseStorageBucketService {
     const filePath = `${personId}/applicantResume.pdf`;
 
     const { error } = await this.client.storage
-      .from(this.bucketName)
+      .from(this.resumeBucketName)
       .upload(filePath, file.buffer, {
         contentType: file.mimetype,
         upsert: true,
@@ -31,5 +32,43 @@ export class SupabaseStorageBucketService {
     }
 
     return filePath;
+  }
+
+  async uploadTaskSubmission(
+    file: Express.Multer.File,
+    taskId: string,
+    internId: string,
+  ): Promise<string> {
+    const safeFileName = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const filePath = `${internId}/${taskId}/${Date.now()}-${safeFileName}`;
+
+    const { error } = await this.client.storage
+      .from(this.taskSubmissionBucketName)
+      .upload(filePath, file.buffer, {
+        contentType: file.mimetype,
+        upsert: false,
+      });
+
+    if (error) {
+      throw new Error(`Task submission upload failed: ${error.message}`);
+    }
+
+    return filePath;
+  }
+
+  async createTaskSubmissionSignedUrl(filePath: string): Promise<string> {
+    const { data, error } = await this.client.storage
+      .from(this.taskSubmissionBucketName)
+      .createSignedUrl(filePath, 60 * 10);
+
+    if (error || !data?.signedUrl) {
+      throw new Error(
+        `Unable to create task submission attachment URL: ${
+          error?.message ?? 'Unknown storage error'
+        }`,
+      );
+    }
+
+    return data.signedUrl;
   }
 }
