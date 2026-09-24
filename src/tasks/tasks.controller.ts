@@ -93,40 +93,4 @@ export class TasksController {
   ): Promise<Task> {
     return this.tasksService.startTask(internId, taskId);
   }
-
-  @Post('intern/:internId/:taskId/submission')
-  @UseInterceptors(FileInterceptor('file'))
-  async submitTask(
-    @Param('internId', new ParseUUIDPipe()) internId: string,
-    @Param('taskId', new ParseUUIDPipe()) taskId: string,
-    @Body('description') description: string | undefined,
-    @UploadedFile() file?: Express.Multer.File,
-  ): Promise<TaskSubmissionResult> {
-    const cleanDescription = description?.trim() ?? '';
-
-    if (!cleanDescription && !file) {
-      throw new BadRequestException(
-        'Please provide a submission description or attach a file.',
-      );
-    }
-
-    await this.tasksService.validateTaskForSubmission(internId, taskId);
-
-    let fileUrl: string | null = null;
-
-    if (file) {
-      fileUrl = await this.supabaseStorageService.uploadTaskSubmission(
-        file,
-        taskId,
-        internId,
-      );
-    }
-
-    return this.tasksService.submitTask(
-      internId,
-      taskId,
-      cleanDescription || null,
-      fileUrl,
-    );
-  }
 }
