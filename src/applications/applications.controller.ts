@@ -7,12 +7,22 @@ import {
   BadRequestException,
   ParseUUIDPipe,
   Param,
+  Query,
+  Get,
+  Patch,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
 import { ApplicationsService } from './applications.service';
 import { CreateApplicationDto } from './dto/create-application.dto';
 import { PersonProfile } from './interfaces/person-profile.interface';
 import { SupabaseStorageBucketService } from '../supabase-storage-bucket/supabase-storage-bucket.service';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { GetApplicationQueryDto } from './dto/get-application-query.dto';
+import { UpdateStatusDto } from './dto/update-status.dto';
+import { AuthGuard } from '@nestjs/passport';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 
 @Controller()
 export class ApplicationsController {
@@ -22,10 +32,16 @@ export class ApplicationsController {
   ) {}
 
   @Post('api/applications')
+  @UseGuards(AuthGuard('jwt'))
   async create(
     @Body() createApplicationDto: CreateApplicationDto,
+    @Req() req: Request & { user: { sub: string } },
   ): Promise<PersonProfile> {
-    return this.applicationService.createApplication(createApplicationDto);
+    const authId = req.user.sub;
+    return this.applicationService.createApplication(
+      createApplicationDto,
+      authId,
+    );
   }
 
   @Post('api/applications/resume/:id')
@@ -46,5 +62,25 @@ export class ApplicationsController {
       personId,
     );
     return this.applicationService.saveResumeURL(filePath, personId);
+  }
+
+  @Get('api/applications')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('admin')
+  async getAll(@Query() query: GetApplicationQueryDto) {
+    return this.applicationService.getApplications(query);
+  }
+
+  @Patch('api/applications/:id/status')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('admin')
+  async updateStatus(
+    @Param('id', ParseUUIDPipe) personId: string,
+    @Body() updateStatusDto: UpdateStatusDto,
+  ): Promise<PersonProfile> {
+    return this.applicationService.updateStatus(
+      personId,
+      updateStatusDto.status,
+    );
   }
 }
