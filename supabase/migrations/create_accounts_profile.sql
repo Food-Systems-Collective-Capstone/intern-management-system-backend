@@ -16,7 +16,7 @@ CREATE TABLE person_profile(
     university text NOT NULL,
     degree text NOT NULL,
     resume_url text,
-    application_status text NOT NULL default 'pending',
+    application_status text NOT NULL default 'Applied',
     created_at date NOT NULL default now(),
     updated_at date NOT NULL default now()
 );
