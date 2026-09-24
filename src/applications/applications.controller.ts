@@ -21,6 +21,8 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { GetApplicationQueryDto } from './dto/get-application-query.dto';
 import { UpdateStatusDto } from './dto/update-status.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 
 @Controller()
 export class ApplicationsController {
@@ -63,11 +65,15 @@ export class ApplicationsController {
   }
 
   @Get('api/applications')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('admin')
   async getAll(@Query() query: GetApplicationQueryDto) {
     return this.applicationService.getApplications(query);
   }
 
   @Patch('api/applications/:id/status')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('admin')
   async updateStatus(
     @Param('id', ParseUUIDPipe) personId: string,
     @Body() updateStatusDto: UpdateStatusDto,
