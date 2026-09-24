@@ -1,5 +1,5 @@
 import {
-  BadRequestException,
+  //BadRequestException,
   Body,
   Controller,
   Get,
@@ -7,16 +7,16 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
-  UploadedFile,
-  UseInterceptors,
+  //UploadedFile,
+  //UseInterceptors,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+//import { FileInterceptor } from '@nestjs/platform-express';
 import { SupabaseStorageBucketService } from '../supabase-storage-bucket/supabase-storage-bucket.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import {
   MentorSubmissionReview,
   MentorTaskCompletionResult,
-  TaskSubmissionResult,
+  //TaskSubmissionResult,
 } from './interfaces/task-submission.interface';
 import { Task } from './interfaces/task.interface';
 import { TasksService } from './tasks.service';
@@ -42,7 +42,8 @@ export class TasksController {
   async getMentorSubmissionReviews(
     @Param('mentorId', new ParseUUIDPipe()) mentorId: string,
   ): Promise<MentorSubmissionReview[]> {
-    const reviews = await this.tasksService.getMentorSubmissionReviews(mentorId);
+    const reviews =
+      await this.tasksService.getMentorSubmissionReviews(mentorId);
 
     return Promise.all(
       reviews.map(async (review) => {
