@@ -8,6 +8,7 @@ import { AppService } from './app.service';
 import { ApplicationsModule } from './applications/applications.module';
 import { TasksModule } from './tasks/tasks.module';
 import { AuthModule } from './auth/auth.module';
+import { WeeklyProgressModule } from './weekly-progress/weekly-progress.module';
 
 @Module({
   imports: [
@@ -30,8 +31,9 @@ import { AuthModule } from './auth/auth.module';
     ApplicationsModule,
     TasksModule,
     AuthModule,
+    WeeklyProgressModule,
   ],
   controllers: [AppController],
-  providers: [AppService], // <-- Add AppService back here
+  providers: [AppService],
 })
 export class AppModule {}

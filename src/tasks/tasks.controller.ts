@@ -29,8 +29,31 @@ export class TasksController {
   ) {}
 
   @Post()
-  createTask(@Body() dto: CreateTaskDto): Promise<Task> {
-    return this.tasksService.createTask(dto);
+  @UseInterceptors(FileInterceptor('reference_file'))
+  async createTask(
+    @Body() dto: CreateTaskDto,
+    @UploadedFile() referenceFile?: Express.Multer.File,
+  ): Promise<Task> {
+    await this.tasksService.validateTaskAssignmentAccounts(dto);
+
+    let referenceFileUrl: string | null = null;
+    let referenceFileName: string | null = null;
+
+    if (referenceFile) {
+      referenceFileUrl =
+        await this.supabaseStorageService.uploadTaskReference(
+          referenceFile,
+          dto.assigned_by_mentor_id,
+        );
+
+      referenceFileName = referenceFile.originalname;
+    }
+
+    return this.tasksService.createTask(
+      dto,
+      referenceFileUrl,
+      referenceFileName,
+    );
   }
 
   @Get('assignment-people')
@@ -51,15 +74,22 @@ export class TasksController {
           return review;
         }
 
-        const attachmentUrl =
-          await this.supabaseStorageService.createTaskSubmissionSignedUrl(
-            review.file_url,
-          );
+        try {
+          const attachmentUrl =
+            await this.supabaseStorageService.createTaskSubmissionSignedUrl(
+              review.file_url,
+            );
 
-        return {
-          ...review,
-          attachment_url: attachmentUrl,
-        };
+          return {
+            ...review,
+            attachment_url: attachmentUrl,
+          };
+        } catch {
+          return {
+            ...review,
+            attachment_url: null,
+          };
+        }
       }),
     );
   }
@@ -80,11 +110,38 @@ export class TasksController {
   }
 
   @Get('intern/:internId/:taskId')
-  getInternTaskDetail(
+  async getInternTaskDetail(
     @Param('internId', new ParseUUIDPipe()) internId: string,
     @Param('taskId', new ParseUUIDPipe()) taskId: string,
   ): Promise<Task> {
-    return this.tasksService.getInternTaskDetail(internId, taskId);
+    const task = await this.tasksService.getInternTaskDetail(
+      internId,
+      taskId,
+    );
+
+    if (!task.reference_file_url) {
+      return {
+        ...task,
+        reference_attachment_url: null,
+      };
+    }
+
+    try {
+      const referenceAttachmentUrl =
+        await this.supabaseStorageService.createTaskReferenceSignedUrl(
+          task.reference_file_url,
+        );
+
+      return {
+        ...task,
+        reference_attachment_url: referenceAttachmentUrl,
+      };
+    } catch {
+      return {
+        ...task,
+        reference_attachment_url: null,
+      };
+    }
   }
 
   @Patch('intern/:internId/:taskId/start')
