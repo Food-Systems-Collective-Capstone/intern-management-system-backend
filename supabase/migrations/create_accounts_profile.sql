@@ -11,7 +11,7 @@ CREATE TABLE person_profile(
     person_id UUID PRIMARY KEY REFERENCES shared_accounts(id) ON DELETE CASCADE,
     firstname text NOT NULL,
     lastname text NOT NULL,
-    phone text NOT NULL UNIQUE,
+    phone text NOT NULL,
     email text NOT NULL UNIQUE,
     university text NOT NULL,
     degree text NOT NULL,
