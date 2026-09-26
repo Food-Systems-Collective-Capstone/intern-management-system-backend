@@ -1,5 +1,5 @@
 import {
-  //BadRequestException,
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -7,16 +7,16 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
-  //UploadedFile,
-  //UseInterceptors,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
-//import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { SupabaseStorageBucketService } from '../supabase-storage-bucket/supabase-storage-bucket.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import {
   MentorSubmissionReview,
   MentorTaskCompletionResult,
-  //TaskSubmissionResult,
+  TaskSubmissionResult,
 } from './interfaces/task-submission.interface';
 import { Task } from './interfaces/task.interface';
 import { TasksService } from './tasks.service';
@@ -93,5 +93,41 @@ export class TasksController {
     @Param('taskId', new ParseUUIDPipe()) taskId: string,
   ): Promise<Task> {
     return this.tasksService.startTask(internId, taskId);
+  }
+
+  @Post('intern/:internId/:taskId/submission')
+  @UseInterceptors(FileInterceptor('file'))
+  async submitTask(
+    @Param('internId', new ParseUUIDPipe()) internId: string,
+    @Param('taskId', new ParseUUIDPipe()) taskId: string,
+    @Body('description') description: string | undefined,
+    @UploadedFile() file?: Express.Multer.File,
+  ): Promise<TaskSubmissionResult> {
+    const cleanDescription = description?.trim() ?? '';
+
+    if (!cleanDescription && !file) {
+      throw new BadRequestException(
+        'Please provide a submission description or attach a file.',
+      );
+    }
+
+    await this.tasksService.validateTaskForSubmission(internId, taskId);
+
+    let fileUrl: string | null = null;
+
+    if (file) {
+      fileUrl = await this.supabaseStorageService.uploadTaskSubmission(
+        file,
+        taskId,
+        internId,
+      );
+    }
+
+    return this.tasksService.submitTask(
+      internId,
+      taskId,
+      cleanDescription || null,
+      fileUrl,
+    );
   }
 }
