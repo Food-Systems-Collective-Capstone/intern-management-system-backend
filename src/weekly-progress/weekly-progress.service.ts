@@ -14,6 +14,21 @@ interface SubmitWeeklyProgressInput {
   next_steps: string;
 }
 
+export interface WeeklyProgressRecord {
+  id: string;
+  intern_id: string;
+  reporting_week: string;
+  accomplishments: string;
+  blockers: string;
+  next_steps: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface AccountRecord {
+  id: string;
+}
+
 interface DatabaseError {
   code?: string;
 }
@@ -28,13 +43,13 @@ export class WeeklyProgressService {
   async getWeeklyProgress(
     internId: string,
     reportingWeek?: string,
-  ) {
+  ): Promise<WeeklyProgressRecord | WeeklyProgressRecord[] | null> {
     await this.ensureAccountExists(internId, 'Intern');
 
     if (reportingWeek) {
       this.validateReportingWeek(reportingWeek);
 
-      const rows = await this.dataSource.query(
+      const queryResult: unknown = await this.dataSource.query(
         `
           SELECT
             id,
@@ -53,10 +68,12 @@ export class WeeklyProgressService {
         [internId, reportingWeek],
       );
 
+      const rows = queryResult as WeeklyProgressRecord[];
+
       return rows[0] ?? null;
     }
 
-    return this.dataSource.query(
+    const queryResult: unknown = await this.dataSource.query(
       `
         SELECT
           id,
@@ -73,13 +90,15 @@ export class WeeklyProgressService {
       `,
       [internId],
     );
+
+    return queryResult as WeeklyProgressRecord[];
   }
 
   async getInternWeeklyProgressForMentor(
     mentorId: string,
     internId: string,
     reportingWeek?: string,
-  ) {
+  ): Promise<WeeklyProgressRecord | WeeklyProgressRecord[] | null> {
     // The shared Mentor-to-Intern responsibility model is still unresolved.
     // For now, validate that both shared accounts exist and reuse the same
     // read-only Weekly Progress retrieval used by the Intern workflow.
@@ -91,7 +110,7 @@ export class WeeklyProgressService {
   async submitWeeklyProgress(
     internId: string,
     input: SubmitWeeklyProgressInput,
-  ) {
+  ): Promise<WeeklyProgressRecord> {
     await this.ensureAccountExists(internId, 'Intern');
 
     const reportingWeek = input.reporting_week?.trim();
@@ -99,12 +118,7 @@ export class WeeklyProgressService {
     const blockers = input.blockers?.trim();
     const nextSteps = input.next_steps?.trim();
 
-    if (
-      !reportingWeek ||
-      !accomplishments ||
-      !blockers ||
-      !nextSteps
-    ) {
+    if (!reportingWeek || !accomplishments || !blockers || !nextSteps) {
       throw new BadRequestException(
         'Reporting week, accomplishments, blockers and next steps are required.',
       );
@@ -113,7 +127,7 @@ export class WeeklyProgressService {
     this.validateReportingWeek(reportingWeek);
 
     try {
-      const rows = await this.dataSource.query(
+      const queryResult: unknown = await this.dataSource.query(
         `
           INSERT INTO weekly_progress (
             intern_id,
@@ -133,16 +147,17 @@ export class WeeklyProgressService {
             created_at,
             updated_at
         `,
-        [
-          internId,
-          reportingWeek,
-          accomplishments,
-          blockers,
-          nextSteps,
-        ],
+        [internId, reportingWeek, accomplishments, blockers, nextSteps],
       );
 
-      return rows[0];
+      const rows = queryResult as WeeklyProgressRecord[];
+      const createdProgress = rows[0];
+
+      if (!createdProgress) {
+        throw new Error('Weekly Progress could not be created.');
+      }
+
+      return createdProgress;
     } catch (error: unknown) {
       const databaseError = error as DatabaseError;
 
@@ -159,8 +174,8 @@ export class WeeklyProgressService {
   private async ensureAccountExists(
     accountId: string,
     accountLabel: string,
-  ) {
-    const rows = await this.dataSource.query(
+  ): Promise<void> {
+    const queryResult: unknown = await this.dataSource.query(
       `
         SELECT id
         FROM shared_accounts
@@ -170,12 +185,14 @@ export class WeeklyProgressService {
       [accountId],
     );
 
+    const rows = queryResult as AccountRecord[];
+
     if (!rows[0]) {
       throw new NotFoundException(`${accountLabel} account not found.`);
     }
   }
 
-  private validateReportingWeek(reportingWeek: string) {
+  private validateReportingWeek(reportingWeek: string): void {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(reportingWeek)) {
       throw new BadRequestException(
         'Reporting week must use YYYY-MM-DD format.',
@@ -188,9 +205,7 @@ export class WeeklyProgressService {
       Number.isNaN(parsedDate.getTime()) ||
       parsedDate.toISOString().slice(0, 10) !== reportingWeek
     ) {
-      throw new BadRequestException(
-        'Reporting week is not a valid date.',
-      );
+      throw new BadRequestException('Reporting week is not a valid date.');
     }
   }
 }
