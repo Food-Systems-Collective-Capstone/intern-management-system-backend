@@ -4,8 +4,10 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 @Injectable()
 export class SupabaseStorageBucketService {
   private readonly client: SupabaseClient;
+
   private readonly resumeBucketName = 'Resume';
   private readonly taskSubmissionBucketName = 'Task-Submissions';
+  private readonly taskReferenceBucketName = 'Task-References';
 
   constructor() {
     this.client = createClient(
@@ -39,7 +41,11 @@ export class SupabaseStorageBucketService {
     taskId: string,
     internId: string,
   ): Promise<string> {
-    const safeFileName = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const safeFileName = file.originalname.replace(
+      /[^a-zA-Z0-9._-]/g,
+      '_',
+    );
+
     const filePath = `${internId}/${taskId}/${Date.now()}-${safeFileName}`;
 
     const { error } = await this.client.storage
@@ -64,6 +70,47 @@ export class SupabaseStorageBucketService {
     if (error || !data?.signedUrl) {
       throw new Error(
         `Unable to create task submission attachment URL: ${
+          error?.message ?? 'Unknown storage error'
+        }`,
+      );
+    }
+
+    return data.signedUrl;
+  }
+
+  async uploadTaskReference(
+    file: Express.Multer.File,
+    mentorId: string,
+  ): Promise<string> {
+    const safeFileName = file.originalname.replace(
+      /[^a-zA-Z0-9._-]/g,
+      '_',
+    );
+
+    const filePath = `${mentorId}/${Date.now()}-${safeFileName}`;
+
+    const { error } = await this.client.storage
+      .from(this.taskReferenceBucketName)
+      .upload(filePath, file.buffer, {
+        contentType: file.mimetype,
+        upsert: false,
+      });
+
+    if (error) {
+      throw new Error(`Task reference upload failed: ${error.message}`);
+    }
+
+    return filePath;
+  }
+
+  async createTaskReferenceSignedUrl(filePath: string): Promise<string> {
+    const { data, error } = await this.client.storage
+      .from(this.taskReferenceBucketName)
+      .createSignedUrl(filePath, 60 * 10);
+
+    if (error || !data?.signedUrl) {
+      throw new Error(
+        `Unable to create task reference attachment URL: ${
           error?.message ?? 'Unknown storage error'
         }`,
       );

@@ -68,27 +68,55 @@ export class TasksService {
     });
   }
 
-  async createTask(dto: CreateTaskDto): Promise<Task> {
-    const accounts = await this.dataSource.query<{ id: string }[]>(
-      `SELECT id
+  async validateTaskAssignmentAccounts(dto: CreateTaskDto): Promise<void> {
+    const accounts = await this.dataSource.query<
+      { id: string; role: string }[]
+    >(
+      `SELECT id, role
        FROM shared_accounts
        WHERE id = ANY($1::uuid[])`,
       [[dto.assigned_intern_id, dto.assigned_by_mentor_id]],
     );
 
-    const accountIds = new Set(accounts.map((account) => account.id));
+    const intern = accounts.find(
+      (account) => account.id === dto.assigned_intern_id,
+    );
 
-    if (!accountIds.has(dto.assigned_intern_id)) {
+    const mentor = accounts.find(
+      (account) => account.id === dto.assigned_by_mentor_id,
+    );
+
+    if (!intern) {
       throw new BadRequestException(
         'The selected Intern account does not exist.',
       );
     }
 
-    if (!accountIds.has(dto.assigned_by_mentor_id)) {
+    if (intern.role !== 'Intern') {
+      throw new BadRequestException(
+        'The selected account is not an Intern.',
+      );
+    }
+
+    if (!mentor) {
       throw new BadRequestException(
         'The selected Mentor account does not exist.',
       );
     }
+
+    if (mentor.role !== 'Mentor') {
+      throw new BadRequestException(
+        'The selected account is not a Mentor.',
+      );
+    }
+  }
+
+  async createTask(
+    dto: CreateTaskDto,
+    referenceFileUrl: string | null = null,
+    referenceFileName: string | null = null,
+  ): Promise<Task> {
+    await this.validateTaskAssignmentAccounts(dto);
 
     const result = await this.dataSource.query<Task[]>(
       `INSERT INTO tasks
@@ -99,9 +127,11 @@ export class TasksService {
           status,
           priority,
           assigned_intern_id,
-          assigned_by_mentor_id
+          assigned_by_mentor_id,
+          reference_file_url,
+          reference_file_name
         )
-       VALUES ($1, $2, $3, 'Assigned', $4, $5, $6)
+       VALUES ($1, $2, $3, 'Assigned', $4, $5, $6, $7, $8)
        RETURNING *`,
       [
         dto.title,
@@ -110,6 +140,8 @@ export class TasksService {
         dto.priority,
         dto.assigned_intern_id,
         dto.assigned_by_mentor_id,
+        referenceFileUrl,
+        referenceFileName,
       ],
     );
 
