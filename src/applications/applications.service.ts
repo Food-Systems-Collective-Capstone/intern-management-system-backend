@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { CreateApplicationDto } from './dto/create-application.dto';
 import { DataSource } from 'typeorm';
@@ -103,5 +107,41 @@ export class ApplicationsService {
     }
 
     return updateQuery[0];
+  }
+
+  async promoteApplicant(personId: string): Promise<PersonProfile> {
+    const applicant = await this.dataSource.query<PersonProfile[]>(
+      'SELECT * FROM person_profile WHERE person_id = $1',
+      [personId],
+    );
+
+    if (applicant.length === 0) {
+      throw new NotFoundException('No applicant with this ID found');
+    }
+
+    if (applicant[0].application_status !== 'Accepted') {
+      throw new BadRequestException('Only accepted applicants can be promoted');
+    }
+
+    const account = await this.dataSource.query<{id: string; role: string;}[]>(
+      "SELECT role from shared_accounts WHERE id = $1", [personId],
+    )
+
+    if (account.length > 0 && account[0].role === 'Intern'){
+      throw new BadRequestException('This applicant has already been promoted')
+    }
+    
+    const result = await this.dataSource.query<{ id: string; role: string }[]>(
+      "UPDATE shared_accounts SET role = 'Intern' WHERE id = $1 RETURNING *",
+      [personId],
+    );
+
+    if (result.length === 0) {
+      throw new NotFoundException(
+        'No matching account found with this ID to Promote',
+      );
+    }
+
+    return applicant[0];
   }
 }

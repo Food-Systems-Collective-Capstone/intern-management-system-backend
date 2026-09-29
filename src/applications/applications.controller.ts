@@ -83,4 +83,13 @@ export class ApplicationsController {
       updateStatusDto.status,
     );
   }
+
+  @Patch('api/applications/:id/promote')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('admin')
+  async promoteApplicant(
+    @Param('id', ParseUUIDPipe) personId: string,
+  ): Promise<PersonProfile> {
+    return this.applicationService.promoteApplicant(personId);
+  }
 }
