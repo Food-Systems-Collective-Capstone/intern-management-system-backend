@@ -40,11 +40,10 @@ export class TasksController {
     let referenceFileName: string | null = null;
 
     if (referenceFile) {
-      referenceFileUrl =
-        await this.supabaseStorageService.uploadTaskReference(
-          referenceFile,
-          dto.assigned_by_mentor_id,
-        );
+      referenceFileUrl = await this.supabaseStorageService.uploadTaskReference(
+        referenceFile,
+        dto.assigned_by_mentor_id,
+      );
 
       referenceFileName = referenceFile.originalname;
     }
@@ -114,10 +113,7 @@ export class TasksController {
     @Param('internId', new ParseUUIDPipe()) internId: string,
     @Param('taskId', new ParseUUIDPipe()) taskId: string,
   ): Promise<Task> {
-    const task = await this.tasksService.getInternTaskDetail(
-      internId,
-      taskId,
-    );
+    const task = await this.tasksService.getInternTaskDetail(internId, taskId);
 
     if (!task.reference_file_url) {
       return {
@@ -162,10 +158,8 @@ export class TasksController {
   ): Promise<TaskSubmissionResult> {
     const cleanDescription = description?.trim() ?? '';
 
-    if (!cleanDescription && !file) {
-      throw new BadRequestException(
-        'Please provide a submission description or attach a file.',
-      );
+    if (!cleanDescription) {
+      throw new BadRequestException('Submission description is required.');
     }
 
     await this.tasksService.validateTaskForSubmission(internId, taskId);
@@ -183,7 +177,7 @@ export class TasksController {
     return this.tasksService.submitTask(
       internId,
       taskId,
-      cleanDescription || null,
+      cleanDescription,
       fileUrl,
     );
   }
