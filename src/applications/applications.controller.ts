@@ -89,7 +89,9 @@ export class ApplicationsController {
   @Roles('admin')
   async promoteApplicant(
     @Param('id', ParseUUIDPipe) personId: string,
+    @Req() req: Request & { user: { sub: string } },
   ): Promise<PersonProfile> {
-    return this.applicationService.promoteApplicant(personId);
+    const authId = req.user.sub;
+    return this.applicationService.promoteApplicant(personId, authId);
   }
 }

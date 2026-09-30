@@ -109,7 +109,21 @@ export class ApplicationsService {
     return updateQuery[0];
   }
 
-  async promoteApplicant(personId: string): Promise<PersonProfile> {
+  async promoteApplicant(
+    personId: string,
+    adminAuthId: string,
+  ): Promise<PersonProfile> {
+    const adminAccount = await this.dataSource.query<{ id: string }[]>(
+      'SELECT id FROM shared_accounts WHERE auth_id = $1',
+      [adminAuthId],
+    );
+
+    if (adminAccount.length === 0) {
+      throw new NotFoundException('No admin account found for this user');
+    }
+
+    const adminId = adminAccount[0].id;
+
     const applicant = await this.dataSource.query<PersonProfile[]>(
       'SELECT * FROM person_profile WHERE person_id = $1',
       [personId],
@@ -123,25 +137,57 @@ export class ApplicationsService {
       throw new BadRequestException('Only accepted applicants can be promoted');
     }
 
-    const account = await this.dataSource.query<{id: string; role: string;}[]>(
-      "SELECT role from shared_accounts WHERE id = $1", [personId],
-    )
-
-    if (account.length > 0 && account[0].role === 'Intern'){
-      throw new BadRequestException('This applicant has already been promoted')
-    }
-    
-    const result = await this.dataSource.query<{ id: string; role: string }[]>(
-      "UPDATE shared_accounts SET role = 'Intern' WHERE id = $1 RETURNING *",
+    const account = await this.dataSource.query<{ id: string; role: string }[]>(
+      'SELECT role from shared_accounts WHERE id = $1',
       [personId],
     );
 
-    if (result.length === 0) {
-      throw new NotFoundException(
-        'No matching account found with this ID to Promote',
-      );
+    if (account.length === 0) {
+      throw new BadRequestException('No matching account found with this ID');
     }
 
-    return applicant[0];
+    if (account[0].role === 'Intern') {
+      throw new BadRequestException('This applicant has already been promoted');
+    }
+
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      await queryRunner.query(
+        "UPDATE shared_accounts SET role = 'Intern' WHERE id = $1",
+        [personId],
+      );
+
+      await queryRunner.query(
+        'UPDATE person_profile SET is_locked = true, promoted_at = now(), promoted_by = $1 WHERE person_id = $2',
+        [adminId, personId],
+      );
+
+      await queryRunner.query(
+        'INSERT INTO audit_logs (event, user_id, previous_state, new_state, changed_by) VALUES ($1, $2, $3, $4, $5)',
+        [
+          'PROFILE_STATE_CHANGE',
+          personId,
+          'APPLICANT_ACCEPTED',
+          'INTERN_ACTIVE',
+          adminId,
+        ],
+      );
+
+      await queryRunner.commitTransaction();
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
+
+    const updated_applicant_profile = await this.dataSource.query<
+      PersonProfile[]
+    >('SELECT * FROM person_profile WHERE person_id = $1', [personId]);
+
+    return updated_applicant_profile[0];
   }
 }
