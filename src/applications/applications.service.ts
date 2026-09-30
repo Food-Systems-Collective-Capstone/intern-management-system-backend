@@ -190,4 +190,14 @@ export class ApplicationsService {
 
     return updated_applicant_profile[0];
   }
+
+  async getIntern(): Promise<(PersonProfile & { role: string })[]> {
+    const interns = await this.dataSource.query<
+      (PersonProfile & { role: string })[]
+    >(
+      "SELECT pp.*, sa.role FROM person_profile pp JOIN shared_accounts sa ON pp.person_id = sa.id WHERE sa.role = 'Intern'",
+    );
+
+    return interns;
+  }
 }

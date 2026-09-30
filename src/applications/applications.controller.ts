@@ -94,4 +94,11 @@ export class ApplicationsController {
     const authId = req.user.sub;
     return this.applicationService.promoteApplicant(personId, authId);
   }
+
+  @Get('api/interns')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('admin')
+  async getInterns(): Promise<(PersonProfile & { role: string })[]> {
+    return this.applicationService.getIntern();
+  }
 }
