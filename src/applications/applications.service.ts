@@ -200,4 +200,26 @@ export class ApplicationsService {
 
     return interns;
   }
+
+  async searchApplications(
+    searchTerm: string,
+  ): Promise<(PersonProfile & { role: string })[]> {
+    const results = await this.dataSource.query<
+      (PersonProfile & { role: string })[]
+    >(
+      `SELECT pp.*, sa.role 
+      FROM person_profile pp
+      JOIN shared_accounts sa ON pp.person_id = sa.id
+      WHERE pp.firstname ILIKE $1
+        OR pp.lastname ILIKE $1
+        OR pp.email ILIKE $1
+        OR pp.application_status ILIKE $1
+        OR sa.role ILIKE $1
+      ORDER BY pp.created_at DESC
+      `,
+      [`%${searchTerm}`],
+    );
+
+    return results;
+  }
 }

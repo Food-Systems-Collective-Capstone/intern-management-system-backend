@@ -101,4 +101,13 @@ export class ApplicationsController {
   async getInterns(): Promise<(PersonProfile & { role: string })[]> {
     return this.applicationService.getIntern();
   }
+
+  @Get('api/applications/search')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('admin')
+  async searchApplications(
+    @Query('q') searchTerm: string,
+  ): Promise<(PersonProfile & { role: string })[]> {
+    return this.applicationService.searchApplications(searchTerm);
+  }
 }
