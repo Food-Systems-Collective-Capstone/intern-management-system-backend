@@ -5,7 +5,7 @@ const VALID_STATUSES = [
   'Review',
   'Shortlisted',
   'Interviewing',
-  'Hired',
+  'Accepted',
   'Rejected',
   'Withdrawn',
 ];

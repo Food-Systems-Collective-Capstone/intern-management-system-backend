@@ -83,4 +83,31 @@ export class ApplicationsController {
       updateStatusDto.status,
     );
   }
+
+  @Patch('api/applications/:id/promote')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('admin')
+  async promoteApplicant(
+    @Param('id', ParseUUIDPipe) personId: string,
+    @Req() req: Request & { user: { sub: string } },
+  ): Promise<PersonProfile> {
+    const authId = req.user.sub;
+    return this.applicationService.promoteApplicant(personId, authId);
+  }
+
+  @Get('api/interns')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('admin')
+  async getInterns(): Promise<(PersonProfile & { role: string })[]> {
+    return this.applicationService.getIntern();
+  }
+
+  @Get('api/applications/search')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('admin')
+  async searchApplications(
+    @Query('q') searchTerm: string,
+  ): Promise<(PersonProfile & { role: string })[]> {
+    return this.applicationService.searchApplications(searchTerm);
+  }
 }

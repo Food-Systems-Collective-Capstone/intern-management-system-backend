@@ -12,4 +12,5 @@ export interface PersonProfile {
   post_code: string;
   graduation_year: number;
   motivation: string;
+  application_status: string;
 }

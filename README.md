@@ -86,6 +86,26 @@ Requires authentication and an admin role. Updates candidates status. Status val
 
 Requires authentication. Accepts multipart/form-data PDF upload, resume is stored in Supabase Storage, and saves resulting path to candidates record.
 
+### PATCH api/applications/:id/promote
+
+**API URL** https://intern-management-system-backend-1.onrender.com/api/applications/:id/promote
+
+Requires authentication and admin as role. Promote an accepted applicant to intern. Validates whether the "application_status" is "Accepted" and that they havent already been promoted to Intern. On success updates `shared_accounts.role` to "Intern", locks applicants profile (`is_locked`), records `promoted_at` and `promoted_by` and writes `PROFILE_STATE_CHANGE` event to audit log within single transaction.
+
+### GET api/interns
+
+**API URL** https://intern-management-system-backend-1.onrender.com/api/interns
+
+Requires authentication as and admin role. Returns all profiles with role as intern, including profile details and promotion metadata (`promoted_at`,`promoted_by`). Used for handoff to Team B task platform.
+
+### GET api/applications/search
+
+**API URL** https://intern-management-system-backend-1.onrender.com/api/applications/search?q=:searchTerm
+
+Requires authentication and an admin role. Searches application by a single query term (`q`), matching against first name, last name, email, application_status and role. Returns all profiles matching the query.
+
+
+
 
 ## Project setup
 
