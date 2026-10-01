@@ -98,6 +98,15 @@ Requires authentication and admin as role. Promote an accepted applicant to inte
 
 Requires authentication as and admin role. Returns all profiles with role as intern, including profile details and promotion metadata (`promoted_at`,`promoted_by`). Used for handoff to Team B task platform.
 
+### GET api/applications/search
+
+**API URL** https://intern-management-system-backend-1.onrender.com/api/applications/search?q=:searchTerm
+
+Requires authentication and an admin role. Searches application by a single query term (`q`), matching against first name, last name, email, application_status and role. Returns all profiles matching the query.
+
+
+
+
 ## Project setup
 
 ```bash

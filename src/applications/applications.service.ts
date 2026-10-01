@@ -217,7 +217,7 @@ export class ApplicationsService {
         OR sa.role ILIKE $1
       ORDER BY pp.created_at DESC
       `,
-      [`%${searchTerm}`],
+      [`%${searchTerm}%`],
     );
 
     return results;
