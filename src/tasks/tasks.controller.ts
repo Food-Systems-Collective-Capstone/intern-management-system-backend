@@ -8,9 +8,12 @@ import {
   Patch,
   Post,
   UploadedFile,
+  Req,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { AuthGuard } from '@nestjs/passport';
 import { SupabaseStorageBucketService } from '../supabase-storage-bucket/supabase-storage-bucket.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import {
@@ -53,6 +56,12 @@ export class TasksController {
       referenceFileUrl,
       referenceFileName,
     );
+  }
+
+  @Get('me')
+  @UseGuards(AuthGuard('jwt'))
+  getCurrentUser(@Req() req: Request & { user: { sub: string } }) {
+    return this.tasksService.getCurrentUser(req.user.sub);
   }
 
   @Get('assignment-people')

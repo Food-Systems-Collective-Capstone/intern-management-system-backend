@@ -27,6 +27,51 @@ type AssignmentPerson = {
 export class TasksService {
   constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
 
+  async getCurrentUser(authId: string) {
+    const accounts = await this.dataSource.query<
+      {
+        id: string;
+        email: string;
+        role: string;
+        firstname: string | null;
+        lastname: string | null;
+      }[]
+    >(
+      `SELECT
+         sa.id,
+         sa.email,
+         sa.role,
+         pp.firstname,
+         pp.lastname
+       FROM shared_accounts sa
+       LEFT JOIN person_profile pp
+         ON pp.person_id = sa.id
+       WHERE sa.auth_id = $1
+       LIMIT 1`,
+      [authId],
+    );
+
+    if (accounts.length === 0) {
+      throw new NotFoundException(
+        'No shared account was found for the authenticated user.',
+      );
+    }
+
+    const account = accounts[0];
+    const fullName = [account.firstname, account.lastname]
+      .filter(Boolean)
+      .join(' ')
+      .trim();
+
+    return {
+      id: account.id,
+      email: account.email,
+      role: account.role,
+      first_name: account.firstname,
+      last_name: account.lastname,
+      name: fullName || account.email,
+    };
+  }
   async getAssignmentPeople(): Promise<AssignmentPerson[]> {
     const people = await this.dataSource.query<
       {
@@ -93,9 +138,7 @@ export class TasksService {
     }
 
     if (intern.role !== 'Intern') {
-      throw new BadRequestException(
-        'The selected account is not an Intern.',
-      );
+      throw new BadRequestException('The selected account is not an Intern.');
     }
 
     if (!mentor) {
@@ -105,9 +148,7 @@ export class TasksService {
     }
 
     if (mentor.role !== 'Mentor') {
-      throw new BadRequestException(
-        'The selected account is not a Mentor.',
-      );
+      throw new BadRequestException('The selected account is not a Mentor.');
     }
   }
 
