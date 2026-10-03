@@ -7,6 +7,8 @@ export interface Task {
   priority: string | null;
   assigned_intern_id: string;
   assigned_by_mentor_id: string;
+  assigned_by_mentor_name?: string | null;
+  assigned_by_mentor_email?: string | null;
   reference_file_url: string | null;
   reference_file_name: string | null;
   reference_attachment_url?: string | null;
