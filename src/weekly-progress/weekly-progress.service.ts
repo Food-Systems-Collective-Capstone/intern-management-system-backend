@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -99,10 +100,9 @@ export class WeeklyProgressService {
     internId: string,
     reportingWeek?: string,
   ): Promise<WeeklyProgressRecord | WeeklyProgressRecord[] | null> {
-    // The shared Mentor-to-Intern responsibility model is still unresolved.
-    // For now, validate that both shared accounts exist and reuse the same
-    // read-only Weekly Progress retrieval used by the Intern workflow.
     await this.ensureAccountExists(mentorId, 'Mentor');
+    await this.ensureAccountExists(internId, 'Intern');
+    await this.ensureMentorInternRelationship(mentorId, internId);
 
     return this.getWeeklyProgress(internId, reportingWeek);
   }
@@ -168,6 +168,30 @@ export class WeeklyProgressService {
       }
 
       throw error;
+    }
+  }
+
+  private async ensureMentorInternRelationship(
+    mentorId: string,
+    internId: string,
+  ): Promise<void> {
+    const queryResult: unknown = await this.dataSource.query(
+      `
+        SELECT id
+        FROM tasks
+        WHERE assigned_by_mentor_id = $1
+          AND assigned_intern_id = $2
+        LIMIT 1
+      `,
+      [mentorId, internId],
+    );
+
+    const rows = queryResult as { id: string }[];
+
+    if (!rows[0]) {
+      throw new ForbiddenException(
+        'This Intern is not associated with the authenticated Mentor.',
+      );
     }
   }
 

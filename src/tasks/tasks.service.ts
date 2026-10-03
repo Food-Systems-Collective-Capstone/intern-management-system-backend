@@ -373,10 +373,20 @@ export class TasksService {
 
   async getInternTaskDetail(internId: string, taskId: string): Promise<Task> {
     const result = await this.dataSource.query<Task[]>(
-      `SELECT *
-       FROM tasks
-       WHERE id = $1
-         AND assigned_intern_id = $2`,
+      `SELECT
+       t.*,
+       COALESCE(
+         NULLIF(TRIM(CONCAT_WS(' ', pp.firstname, pp.lastname)), ''),
+         mentor.email
+       ) AS assigned_by_mentor_name,
+       mentor.email AS assigned_by_mentor_email
+     FROM tasks t
+     LEFT JOIN shared_accounts mentor
+       ON mentor.id = t.assigned_by_mentor_id
+     LEFT JOIN person_profile pp
+       ON pp.person_id = mentor.id
+     WHERE t.id = $1
+       AND t.assigned_intern_id = $2`,
       [taskId, internId],
     );
 
