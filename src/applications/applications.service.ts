@@ -17,12 +17,19 @@ export class ApplicationsService {
     dto: CreateApplicationDto,
     authId: string,
   ): Promise<PersonProfile> {
-    const accountTableResult = await this.dataSource.query<{ id: string }[]>(
+    let account = await this.dataSource.query<{ id: string }[]>(
       'SELECT id FROM shared_accounts WHERE auth_id = $1',
       [authId],
     );
 
-    const personId = accountTableResult[0].id;
+    if (account.length === 0) {
+      account = await this.dataSource.query<{ id: string }[]>(
+        'INSERT INTO shared_accounts (email, role, auth_id) VALUES ($1, $2, $3) RETURNING id',
+        [dto.email, 'Applicant', authId],
+      );
+    }
+
+    const personId = account[0].id;
 
     const result = await this.dataSource.query<PersonProfile>(
       'INSERT INTO person_profile (person_id, firstname, lastname, phone, email, university, degree, address, city, state, post_code, graduation_year, motivation) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *',
