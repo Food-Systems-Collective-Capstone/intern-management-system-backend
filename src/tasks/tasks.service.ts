@@ -13,11 +13,12 @@ import {
   TaskSubmissionResult,
 } from './interfaces/task-submission.interface';
 import { Task } from './interfaces/task.interface';
+import { AccountRole } from '../accounts/account-role.enum';
 
 type AssignmentPerson = {
   id: string;
   email: string;
-  role: string;
+  role: AccountRole;
   first_name: string | null;
   last_name: string | null;
   name: string;
@@ -32,7 +33,7 @@ export class TasksService {
       {
         id: string;
         email: string;
-        role: string;
+        role: AccountRole;
         firstname: string | null;
         lastname: string | null;
       }[]
@@ -77,7 +78,7 @@ export class TasksService {
       {
         id: string;
         email: string;
-        role: string;
+        role: AccountRole;
         firstname: string | null;
         lastname: string | null;
       }[]
@@ -115,7 +116,7 @@ export class TasksService {
 
   async validateTaskAssignmentAccounts(dto: CreateTaskDto): Promise<void> {
     const accounts = await this.dataSource.query<
-      { id: string; role: string }[]
+      { id: string; role: AccountRole }[]
     >(
       `SELECT id, role
        FROM shared_accounts
@@ -137,7 +138,7 @@ export class TasksService {
       );
     }
 
-    if (intern.role !== 'Intern') {
+    if (intern.role !== AccountRole.Intern) {
       throw new BadRequestException('The selected account is not an Intern.');
     }
 
@@ -147,7 +148,7 @@ export class TasksService {
       );
     }
 
-    if (mentor.role !== 'Mentor') {
+    if (mentor.role !== AccountRole.Mentor) {
       throw new BadRequestException('The selected account is not a Mentor.');
     }
   }

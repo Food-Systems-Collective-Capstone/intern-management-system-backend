@@ -23,6 +23,7 @@ import { UpdateStatusDto } from './dto/update-status.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
+import { AccountRole } from '../accounts/account-role.enum';
 
 @Controller()
 export class ApplicationsController {
@@ -66,14 +67,14 @@ export class ApplicationsController {
 
   @Get('api/applications')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('admin')
+  @Roles(AccountRole.Admin)
   async getAll(@Query() query: GetApplicationQueryDto) {
     return this.applicationService.getApplications(query);
   }
 
   @Patch('api/applications/:id/status')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('admin')
+  @Roles(AccountRole.Admin)
   async updateStatus(
     @Param('id', ParseUUIDPipe) personId: string,
     @Body() updateStatusDto: UpdateStatusDto,
@@ -86,7 +87,7 @@ export class ApplicationsController {
 
   @Patch('api/applications/:id/promote')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('admin')
+  @Roles(AccountRole.Admin)
   async promoteApplicant(
     @Param('id', ParseUUIDPipe) personId: string,
     @Req() req: Request & { user: { sub: string } },
@@ -97,14 +98,14 @@ export class ApplicationsController {
 
   @Get('api/interns')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('admin')
+  @Roles(AccountRole.Admin)
   async getInterns(): Promise<(PersonProfile & { role: string })[]> {
     return this.applicationService.getIntern();
   }
 
   @Get('api/applications/search')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('admin')
+  @Roles(AccountRole.Admin)
   async searchApplications(
     @Query('q') searchTerm: string,
   ): Promise<(PersonProfile & { role: string })[]> {
