@@ -145,7 +145,7 @@ export class ApplicationsService {
       throw new BadRequestException('Only accepted applicants can be promoted');
     }
 
-    const account = await this.dataSource.query<{ id: string; role: string }[]>(
+    const account = await this.dataSource.query<{ id: string; role: AccountRole }[]>(
       'SELECT role from shared_accounts WHERE id = $1',
       [personId],
     );
