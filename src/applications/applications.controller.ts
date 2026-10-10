@@ -46,10 +46,13 @@ export class ApplicationsController {
   }
 
   @Post('api/applications/resume/:id')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(AccountRole.Applicant)
   @UseInterceptors(FileInterceptor('file'))
   async uploadResume(
     @Param('id', ParseUUIDPipe) personId: string,
     @UploadedFile() file: Express.Multer.File,
+    @Req() req: Request & { user: { sub: string } },
   ) {
     if (!file) {
       throw new BadRequestException('No file uploaded');
@@ -57,6 +60,11 @@ export class ApplicationsController {
     if (file.mimetype != 'application/pdf') {
       throw new BadRequestException('File must be pdf');
     }
+
+    await this.applicationService.assertApplicationOwner(
+      personId,
+      req.user.sub,
+    );
 
     const filePath = await this.supabaseStorageService.uploadResume(
       file,
