@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -18,14 +19,27 @@ export class ApplicationsService {
     dto: CreateApplicationDto,
     authId: string,
   ): Promise<PersonProfile> {
-    let account = await this.dataSource.query<{ id: string }[]>(
-      'SELECT id FROM shared_accounts WHERE auth_id = $1',
+    let account = await this.dataSource.query<
+      { id: string; role: AccountRole }[]
+    >(
+      'SELECT id, role FROM shared_accounts WHERE auth_id = $1',
       [authId],
     );
 
+    if (
+      account.length > 0 &&
+      ![AccountRole.Applicant, AccountRole.Admin].includes(account[0].role)
+    ) {
+      throw new ForbiddenException(
+        'Only applicants can submit an application.',
+      );
+    }
+
     if (account.length === 0) {
-      account = await this.dataSource.query<{ id: string }[]>(
-        'INSERT INTO shared_accounts (email, role, auth_id) VALUES ($1, $2, $3) RETURNING id',
+      account = await this.dataSource.query<
+        { id: string; role: AccountRole }[]
+      >(
+        'INSERT INTO shared_accounts (email, role, auth_id) VALUES ($1, $2, $3) RETURNING id, role',
         [dto.email, AccountRole.Applicant, authId],
       );
     }
@@ -68,6 +82,26 @@ export class ApplicationsService {
     }
 
     return result[0];
+  }
+
+  async assertApplicationOwner(
+    personId: string,
+    authId: string,
+  ): Promise<void> {
+    const accounts = await this.dataSource.query<{ id: string }[]>(
+      `SELECT shared_accounts.id
+       FROM shared_accounts
+       JOIN person_profile ON person_profile.person_id = shared_accounts.id
+       WHERE shared_accounts.id = $1 AND shared_accounts.auth_id = $2
+       LIMIT 1`,
+      [personId, authId],
+    );
+
+    if (accounts.length === 0) {
+      throw new NotFoundException(
+        'No application was found for the authenticated user.',
+      );
+    }
   }
 
   async getApplications(
