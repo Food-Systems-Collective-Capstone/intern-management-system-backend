@@ -8,6 +8,7 @@ import { CreateApplicationDto } from './dto/create-application.dto';
 import { DataSource } from 'typeorm';
 import { PersonProfile } from './interfaces/person-profile.interface';
 import { GetApplicationQueryDto } from './dto/get-application-query.dto';
+import { AccountRole } from '../accounts/account-role.enum';
 
 @Injectable()
 export class ApplicationsService {
@@ -25,7 +26,7 @@ export class ApplicationsService {
     if (account.length === 0) {
       account = await this.dataSource.query<{ id: string }[]>(
         'INSERT INTO shared_accounts (email, role, auth_id) VALUES ($1, $2, $3) RETURNING id',
-        [dto.email, 'Applicant', authId],
+        [dto.email, AccountRole.Applicant, authId],
       );
     }
 
@@ -144,7 +145,7 @@ export class ApplicationsService {
       throw new BadRequestException('Only accepted applicants can be promoted');
     }
 
-    const account = await this.dataSource.query<{ id: string; role: string }[]>(
+    const account = await this.dataSource.query<{ id: string; role: AccountRole }[]>(
       'SELECT role from shared_accounts WHERE id = $1',
       [personId],
     );
@@ -153,7 +154,7 @@ export class ApplicationsService {
       throw new BadRequestException('No matching account found with this ID');
     }
 
-    if (account[0].role === 'Intern') {
+    if (account[0].role === AccountRole.Intern) {
       throw new BadRequestException('This applicant has already been promoted');
     }
 
@@ -163,8 +164,8 @@ export class ApplicationsService {
 
     try {
       await queryRunner.query(
-        "UPDATE shared_accounts SET role = 'Intern' WHERE id = $1",
-        [personId],
+        'UPDATE shared_accounts SET role = $1 WHERE id = $2',
+        [AccountRole.Intern, personId],
       );
 
       await queryRunner.query(
@@ -202,7 +203,8 @@ export class ApplicationsService {
     const interns = await this.dataSource.query<
       (PersonProfile & { role: string })[]
     >(
-      "SELECT pp.*, sa.role FROM person_profile pp JOIN shared_accounts sa ON pp.person_id = sa.id WHERE sa.role = 'Intern'",
+      'SELECT pp.*, sa.role FROM person_profile pp JOIN shared_accounts sa ON pp.person_id = sa.id WHERE sa.role = $1',
+      [AccountRole.Intern],
     );
 
     return interns;

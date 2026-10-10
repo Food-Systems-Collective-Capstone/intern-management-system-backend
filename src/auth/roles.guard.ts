@@ -3,6 +3,7 @@ import { Reflector } from '@nestjs/core';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { ForbiddenException } from '@nestjs/common';
+import { AccountRole } from '../accounts/account-role.enum';
 
 interface RequestWithUserToken {
   user?: {
@@ -18,9 +19,9 @@ export class RolesGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const requiredRoles = this.reflector.get<string[]>(
+    const requiredRoles = this.reflector.getAllAndOverride<AccountRole[]>(
       'roles',
-      context.getHandler(),
+      [context.getHandler(), context.getClass()],
     );
 
     if (!requiredRoles || requiredRoles.length === 0) {
@@ -34,13 +35,13 @@ export class RolesGuard implements CanActivate {
       throw new ForbiddenException('No Authenticated User Found');
     }
 
-    const result = await this.dataSource.query<{ role: string }[]>(
+    const result = await this.dataSource.query<{ role: AccountRole }[]>(
       'SELECT role FROM shared_accounts WHERE auth_id = $1',
       [authId],
     );
 
     if (result.length === 0) {
-      throw new Error('No account found for this user');
+      throw new ForbiddenException('No account found for this user');
     }
 
     const userRole = result[0].role;
