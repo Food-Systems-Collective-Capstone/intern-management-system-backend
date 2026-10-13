@@ -26,6 +26,7 @@ import {
 } from './interfaces/task-submission.interface';
 import { Task } from './interfaces/task.interface';
 import { TasksService } from './tasks.service';
+import { AccountRole } from '../accounts/account-role.enum';
 
 type AuthenticatedRequest = Request & {
   user: {
@@ -42,7 +43,7 @@ export class TasksController {
 
   @Post()
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('Mentor')
+  @Roles(AccountRole.Mentor)
   @UseInterceptors(FileInterceptor('reference_file'))
   async createTask(
     @Req() req: AuthenticatedRequest,
@@ -86,14 +87,14 @@ export class TasksController {
 
   @Get('assignment-people')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('Mentor')
+  @Roles(AccountRole.Mentor)
   getAssignmentPeople() {
     return this.tasksService.getAssignmentPeople();
   }
 
   @Get('mentor/:mentorId/reviews')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('Mentor')
+  @Roles(AccountRole.Mentor)
   async getMentorSubmissionReviews(
     @Req() req: AuthenticatedRequest,
     @Param('mentorId', new ParseUUIDPipe()) mentorId: string,
@@ -138,7 +139,7 @@ export class TasksController {
 
   @Patch('mentor/:mentorId/:taskId/complete')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('Mentor')
+  @Roles(AccountRole.Mentor)
   async completeTask(
     @Req() req: AuthenticatedRequest,
     @Param('mentorId', new ParseUUIDPipe()) mentorId: string,
@@ -157,7 +158,7 @@ export class TasksController {
 
   @Get('intern/:internId')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('Intern')
+  @Roles(AccountRole.Intern)
   async getInternTasks(
     @Req() req: AuthenticatedRequest,
     @Param('internId', new ParseUUIDPipe()) internId: string,
@@ -171,7 +172,7 @@ export class TasksController {
 
   @Get('intern/:internId/:taskId')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('Intern')
+  @Roles(AccountRole.Intern)
   async getInternTaskDetail(
     @Req() req: AuthenticatedRequest,
     @Param('internId', new ParseUUIDPipe()) internId: string,
@@ -213,7 +214,7 @@ export class TasksController {
 
   @Patch('intern/:internId/:taskId/start')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('Intern')
+  @Roles(AccountRole.Intern)
   async startTask(
     @Req() req: AuthenticatedRequest,
     @Param('internId', new ParseUUIDPipe()) internId: string,
@@ -228,7 +229,7 @@ export class TasksController {
 
   @Post('intern/:internId/:taskId/submission')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('Intern')
+  @Roles(AccountRole.Intern)
   @UseInterceptors(FileInterceptor('file'))
   async submitTask(
     @Req() req: AuthenticatedRequest,

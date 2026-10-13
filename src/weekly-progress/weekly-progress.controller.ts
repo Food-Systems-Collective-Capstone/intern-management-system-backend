@@ -15,6 +15,7 @@ import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
 import { TasksService } from '../tasks/tasks.service';
 import { WeeklyProgressService } from './weekly-progress.service';
+import { AccountRole } from '../accounts/account-role.enum';
 
 interface SubmitWeeklyProgressBody {
   reporting_week: string;
@@ -38,7 +39,7 @@ export class WeeklyProgressController {
 
   @Get('intern/:internId')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('Intern')
+  @Roles(AccountRole.Intern)
   async getWeeklyProgress(
     @Req() req: AuthenticatedRequest,
     @Param('internId', new ParseUUIDPipe()) internId: string,
@@ -56,7 +57,7 @@ export class WeeklyProgressController {
 
   @Post('intern/:internId')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('Intern')
+  @Roles(AccountRole.Intern)
   async submitWeeklyProgress(
     @Req() req: AuthenticatedRequest,
     @Param('internId', new ParseUUIDPipe()) internId: string,
@@ -74,7 +75,7 @@ export class WeeklyProgressController {
 
   @Get('mentor/:mentorId/intern/:internId')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('Mentor')
+  @Roles(AccountRole.Mentor)
   async getInternWeeklyProgressForMentor(
     @Req() req: AuthenticatedRequest,
     @Param('mentorId', new ParseUUIDPipe()) mentorId: string,

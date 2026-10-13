@@ -9,6 +9,7 @@ import { ApplicationsModule } from './applications/applications.module';
 import { TasksModule } from './tasks/tasks.module';
 import { AuthModule } from './auth/auth.module';
 import { WeeklyProgressModule } from './weekly-progress/weekly-progress.module';
+import { MentorAssignmentsModule } from './mentor-assignments/mentor-assignments.module';
 
 @Module({
   imports: [
@@ -22,7 +23,7 @@ import { WeeklyProgressModule } from './weekly-progress/weekly-progress.module';
         type: 'postgres',
         url: configService.get<string>('DATABASE_URL'),
         autoLoadEntities: true,
-        synchronize: true,
+        synchronize: false,
         ssl: {
           rejectUnauthorized: false,
         },
@@ -32,6 +33,7 @@ import { WeeklyProgressModule } from './weekly-progress/weekly-progress.module';
     TasksModule,
     AuthModule,
     WeeklyProgressModule,
+    MentorAssignmentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

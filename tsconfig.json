@@ -19,6 +19,8 @@
     "forceConsistentCasingInFileNames": true,
     "noImplicitAny": false,
     "strictBindCallApply": false,
-    "noFallthroughCasesInSwitch": false
+    "strictPropertyInitialization": false,
+    "noFallthroughCasesInSwitch": false,
+    "types": ["jest", "node", "express", "multer"]
   }
 }
