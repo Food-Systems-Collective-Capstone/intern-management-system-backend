@@ -13,4 +13,7 @@ export interface PersonProfile {
   graduation_year: number;
   motivation: string;
   application_status: string;
+  country: string;
+  date_of_birth: string;
+  linkedin_url: string;
 }
