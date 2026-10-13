@@ -1,4 +1,12 @@
-import { IsString, IsEmail, IsNotEmpty, IsInt, IsDateString, IsUrl, Matches } from 'class-validator';
+import {
+  IsString,
+  IsEmail,
+  IsNotEmpty,
+  IsInt,
+  IsDateString,
+  IsUrl,
+  Matches,
+} from 'class-validator';
 
 export class CreateApplicationDto {
   @IsString() //Checks if value IsString
@@ -56,9 +64,9 @@ export class CreateApplicationDto {
   @IsDateString()
   date_of_birth: string;
 
-  @IsUrl({protocols: ['https'], require_protocol: true})
-  @Matches(/^https:\/\/([a-z]{2,3}\.)?linkedin\.com\/.+/i,{
-    message: 'linkedin_url must be a LinkedIn Profile Link'
+  @IsUrl({ protocols: ['https'], require_protocol: true })
+  @Matches(/^https:\/\/([a-z]{2,3}\.)?linkedin\.com\/.+/i, {
+    message: 'linkedin_url must be a LinkedIn Profile Link',
   })
   linkedin_url: string;
 }

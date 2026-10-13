@@ -32,7 +32,7 @@ export class ApplicationsService {
     const personId = account[0].id;
 
     const result = await this.dataSource.query<PersonProfile>(
-      'INSERT INTO person_profile (person_id, firstname, lastname, phone, email, university, degree, address, city, state, post_code, graduation_year, motivation) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *',
+      'INSERT INTO person_profile (person_id, firstname, lastname, phone, email, university, degree, address, city, state, post_code, graduation_year, motivation, country, date_of_birth, linkedin_url) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING *',
       [
         personId,
         dto.firstname,
@@ -47,6 +47,9 @@ export class ApplicationsService {
         dto.post_code,
         dto.graduation_year,
         dto.motivation,
+        dto.country,
+        dto.date_of_birth,
+        dto.linkedin_url,
       ],
     );
 
