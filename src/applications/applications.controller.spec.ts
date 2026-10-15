@@ -7,6 +7,10 @@ import { RolesGuard } from '../auth/roles.guard';
 
 describe('ApplicationsController', () => {
   let controller: ApplicationsController;
+  const applicationsService = {
+    createApplication: jest.fn(),
+    updateStatus: jest.fn(),
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -14,7 +18,7 @@ describe('ApplicationsController', () => {
       providers: [
         {
           provide: ApplicationsService,
-          useValue: { createApplication: jest.fn() },
+          useValue: applicationsService,
         },
         {
           provide: SupabaseStorageBucketService,
@@ -29,9 +33,26 @@ describe('ApplicationsController', () => {
       .compile();
 
     controller = module.get<ApplicationsController>(ApplicationsController);
+    jest.clearAllMocks();
   });
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
+  });
+
+  it('updates an applicant status through the service', async () => {
+    const applicant = {
+      person_id: 'a5cc35ee-6086-49d0-887e-a5680ca39a83',
+      application_status: 'Accepted',
+    };
+    applicationsService.updateStatus.mockResolvedValue(applicant);
+
+    await expect(
+      controller.updateStatus(applicant.person_id, { status: 'Accepted' }),
+    ).resolves.toBe(applicant);
+    expect(applicationsService.updateStatus).toHaveBeenCalledWith(
+      applicant.person_id,
+      'Accepted',
+    );
   });
 });
