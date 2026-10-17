@@ -113,26 +113,27 @@ export class ApplicationsService {
     const { status, page = 1, limit = 10 } = query;
     const offset = (page - 1) * limit;
 
-    const params: (string | number)[] = [];
-    let whereClause: string = '';
+    const params: (string | number)[] = [AccountRole.Applicant];
+    let whereClause = 'WHERE sa.role = $1';
 
     if (status) {
       params.push(status);
-      whereClause = `WHERE application_status = $${params.length}`;
+      whereClause += ` AND pp.application_status = $${params.length}`;
     }
 
+    const countParams = [...params];
     params.push(limit, offset);
     const limitParameter = `$${params.length - 1}`;
     const offsetParameter = `$${params.length}`;
 
     const data = await this.dataSource.query<PersonProfile[]>(
-      `SELECT * FROM person_profile ${whereClause} ORDER BY created_at DESC LIMIT ${limitParameter} OFFSET ${offsetParameter}`,
+      `SELECT pp.* FROM person_profile pp JOIN shared_accounts sa ON pp.person_id = sa.id ${whereClause} ORDER BY pp.created_at DESC LIMIT ${limitParameter} OFFSET ${offsetParameter}`,
       params,
     );
 
     const countResult = await this.dataSource.query<{ count: string }[]>(
-      `SELECT COUNT(*) FROM person_profile ${whereClause}`,
-      status ? [status] : [],
+      `SELECT COUNT(*) FROM person_profile pp JOIN shared_accounts sa ON pp.person_id = sa.id ${whereClause}`,
+      countParams,
     );
 
     return { data, total: parseInt(countResult[0].count, 10) };
@@ -148,7 +149,7 @@ export class ApplicationsService {
     );
 
     if (updateQuery.length === 0) {
-      throw new Error('No person found with this ID');
+      throw new NotFoundException('No applicant found with this ID');
     }
 
     return updateQuery[0];
@@ -256,14 +257,14 @@ export class ApplicationsService {
       `SELECT pp.*, sa.role 
       FROM person_profile pp
       JOIN shared_accounts sa ON pp.person_id = sa.id
-      WHERE pp.firstname ILIKE $1
+      WHERE sa.role = $2 AND (pp.firstname ILIKE $1
         OR pp.lastname ILIKE $1
         OR pp.email ILIKE $1
         OR pp.application_status ILIKE $1
-        OR sa.role ILIKE $1
+        OR sa.role ILIKE $1)
       ORDER BY pp.created_at DESC
       `,
-      [`%${searchTerm}%`],
+      [`%${searchTerm}%`, AccountRole.Applicant],
     );
 
     return results;
