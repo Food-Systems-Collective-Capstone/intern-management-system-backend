@@ -78,7 +78,7 @@ Requires authentication and admin role. Returns paginated, optionally filtered l
 
 **API URL** https://intern-management-system-backend-1.onrender.com/api/applications/:id/status
 
-Requires authentication and an admin role. Updates candidates status. Status value is validated against allowed statu values (Applied, Review, ShortListed, Interviewing, Hired, Rejected and Withdrawn).
+Requires authentication and an admin role. Updates candidates status. Status value is validated against allowed statu values (Applied, Review, ShortListed, Interviewing, Accepted, Rejected and Withdrawn).
 
 ### POST api/applications/resume/:id
 
