@@ -52,7 +52,7 @@ Used to verify database connection status, current up time and write/read permis
     {
       "id": "cd8ac10e-1480-4237-97aa-71120bdcdbd4",
       "email": "testconnection@example.com",
-      "role": "User",
+      "role": "applicant",
       "auth_id": "826880c1-db9f-4258-ac6d-486cd2a98a8c",
       "created_at": "2026-09-07T00:00:00.000Z",
       "updated_at": "2026-09-07T00:00:00.000Z"
@@ -65,20 +65,20 @@ Used to verify database connection status, current up time and write/read permis
 
 **API URL** https://intern-management-system-backend-1.onrender.com/api/applications
 
-Requires authentication (JWT token). Create new candidate application, links to authenticated users account. Acceps applicant details (name, contact, university, degree, address, graduaation year and motivation) and validates them via DTO.
+Requires authentication (JWT token). Create new candidate application, links to authenticated users account. Acceps applicant details (name, contact, university, degree, address, graduaation year and motivation, country, date_of_birth_ linkedin_url) and validates them via DTO.
 
 
 ### GET api/applications 
 
 **API URL** https://intern-management-system-backend-1.onrender.com/api/applications
 
-Requires authentication and admin role. Returns paginated, optionally filtered list of applications. Query parameters include status, page, limit. Returns `{ data, total }`.
+Requires authentication and admin role. Returns paginated, optionally filtered list of applications. Query parameters: status (optional), page (default 1) and limit (default 10). Returns `{ data, total }`.
 
 ### PATCH api/applications/:id/status
 
 **API URL** https://intern-management-system-backend-1.onrender.com/api/applications/:id/status
 
-Requires authentication and an admin role. Updates candidates status. Status value is validated against allowed statu values (Applied, Review, ShortListed, Interviewing, Hired, Rejected and Withdrawn).
+Requires authentication and an admin role. Updates candidates status. Status value is validated against allowed statu values (Applied, Review, ShortListed, Interviewing, Accepted, Rejected and Withdrawn).
 
 ### POST api/applications/resume/:id
 
