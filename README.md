@@ -65,14 +65,14 @@ Used to verify database connection status, current up time and write/read permis
 
 **API URL** https://intern-management-system-backend-1.onrender.com/api/applications
 
-Requires authentication (JWT token). Create new candidate application, links to authenticated users account. Acceps applicant details (name, contact, university, degree, address, graduaation year and motivation) and validates them via DTO.
+Requires authentication (JWT token). Create new candidate application, links to authenticated users account. Acceps applicant details (name, contact, university, degree, address, graduaation year and motivation, country, date_of_birth_ linkedin_url) and validates them via DTO.
 
 
 ### GET api/applications 
 
 **API URL** https://intern-management-system-backend-1.onrender.com/api/applications
 
-Requires authentication and admin role. Returns paginated, optionally filtered list of applications. Query parameters include status, page, limit. Returns `{ data, total }`.
+Requires authentication and admin role. Returns paginated, optionally filtered list of applications. Query parameters: status (optional), page (default 1) and limit (default 10). Returns `{ data, total }`.
 
 ### PATCH api/applications/:id/status
 
