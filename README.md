@@ -52,7 +52,7 @@ Used to verify database connection status, current up time and write/read permis
     {
       "id": "cd8ac10e-1480-4237-97aa-71120bdcdbd4",
       "email": "testconnection@example.com",
-      "role": "User",
+      "role": "applicant",
       "auth_id": "826880c1-db9f-4258-ac6d-486cd2a98a8c",
       "created_at": "2026-09-07T00:00:00.000Z",
       "updated_at": "2026-09-07T00:00:00.000Z"
